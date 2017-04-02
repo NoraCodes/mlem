@@ -6,6 +6,32 @@
 //! and hardware I/O with Input and Output. 
 //! 
 //! These I/O instructions write out whole `u64`s in big endian using `byteorder`.
+//! 
+//! # Example
+//! ```
+//! use mlem::{execute, Instruction, Address, Register, Outcome};
+//! let input = vec![2, 2, 2, 2];
+//! let expected = vec![4, 0];
+//! let program = vec![
+//!     // Get all input values
+//!     Instruction::Input(Address::RegAbs(Register::R0)),
+//!     Instruction::Input(Address::RegAbs(Register::R1)),
+//!     Instruction::Input(Address::RegAbs(Register::R2)),
+//!     Instruction::Input(Address::RegAbs(Register::R3)),
+//!     // Perform arithmetic
+//!     Instruction::Add(Address::RegAbs(Register::R0), Address::RegAbs(Register::R1)),
+//!     Instruction::Sub(Address::RegAbs(Register::R2), Address::RegAbs(Register::R3)),
+//!     // Output computed values
+//!     Instruction::Output(Address::RegAbs(Register::R0)),
+//!     Instruction::Output(Address::RegAbs(Register::R2)),
+//!     // Halt
+//!     Instruction::Halt
+//! ];
+//!
+//! let (outcome, _, output) = execute(program, input);
+//! assert!(outcome == Outcome::Halt, "Program did not successfully halt! {:?}", outcome);
+//! assert!(output == expected, "Program did not produce {:?} as expected, but rather {:?}.", expected, output);
+//! ```
 
 extern crate byteorder;
 

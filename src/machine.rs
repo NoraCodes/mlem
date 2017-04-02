@@ -19,7 +19,9 @@ pub enum Outcome {
 }
 
 /// Represents the state of a machine, including its registers, its memory,
-/// its I/O Read and Write, and its program. The associated lifetime `'mach`
+/// its I/O Read and Write, and its program. 
+/// 
+/// The associated lifetime `'mach`
 /// represents the life of the machine; its I/O connections must live at 
 /// least that long.
 pub struct Machine<'mach> {

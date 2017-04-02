@@ -16,8 +16,10 @@ pub enum Address {
 }
 
 #[derive(PartialEq, Debug, Copy, Clone)]
-/// Specifies a register in the machine. This doesn't include thie instruction pointer; you have to
-/// use jump instructions to do that.
+/// Specifies a register in the machine. 
+///
+/// This doesn't include the instruction pointer. You have to use  use jump instructions
+/// to mess with that.
 pub enum Register {
     /// General purpouse register 0
     R0,
