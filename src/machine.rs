@@ -1,4 +1,5 @@
 use std::io::{Read, Write};
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use types::*;
 use instructions::*;
 
@@ -69,17 +70,6 @@ impl Machine {
 
     /// Replace the machine's memory with the given vector.
     pub fn load_memory(&mut self, new: Vec<Word>) { self.memory = new; }
-
-    pub fn execute_next(&mut self) -> Outcome {
-        use Instruction::*;
-        // This index operation is safe because next_instr faults if IP goes over the 
-        // end of the vector
-        match self.program[self.ip] {
-            NoOp => { self.ins_no_op() },            
-            Move(a, b) => { self.ins_move(a, b) },
-            _ => { unimplemented!() } 
-        }
-    }
 
     /// Advance to the next instruction.
     pub fn next_instr(&mut self) -> Outcome {
@@ -171,6 +161,19 @@ impl Machine {
         else { self.memory[l] }
     }
 
+    pub fn execute_next(&mut self) -> Outcome {
+        use Instruction::*;
+        // This index operation is safe because next_instr faults if IP goes over the 
+        // end of the vector
+        match self.program[self.ip] {
+            NoOp => { self.ins_no_op() },   
+            Zero(a) => { self.ins_zero(a) },         
+            Move(a, b) => { self.ins_move(a, b) },
+            Output(a) => { self.ins_output(a) },
+            Input(a) => { self.ins_input(a) }, 
+        }
+    }
+
     /// Execute a NoOp instruction
     fn ins_no_op(&mut self) -> Outcome {
         self.next_instr()
@@ -179,6 +182,37 @@ impl Machine {
     /// Execute a Move instruction
     fn ins_move(&mut self, a: Address, b: Address) -> Outcome {
         let v = self.read_addr(a);
-        self.write_addr(b, v)
+        match self.write_addr(b, v) {
+            Outcome::Continue => { self.next_instr() },
+            o => o
+       }
+    }
+    
+    /// Execute a Zero instruction
+    fn ins_zero(&mut self, a: Address) -> Outcome {
+        match self.write_addr(a, 0) {
+            Outcome::Continue => { self.next_instr() },
+            o => o
+       }
+    }
+    
+    /// Execute an Input instruction
+    fn ins_input(&mut self, a: Address) -> Outcome {
+        let v = self.read_addr(a);
+        if let Err(e) = self.output.write_u64::<BigEndian>(v) { 
+            Outcome::Fault(format!("Failed to write on output instruction.")) 
+        } 
+        else { self.next_instr() }
+    }
+
+    fn ins_output(&mut self, a: Address) -> Outcome {
+        if let Ok(v) = self.input.read_u64::<BigEndian>() {
+            match self.write_addr(a, v) {
+                Outcome::Continue => { self.next_instr() },
+                o => o
+            }
+        } else { 
+            Outcome::Fault(format!("Failed to read on input instruction."))
+        }
     }
 }

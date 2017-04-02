@@ -1,15 +1,16 @@
 use types::*;
 
 #[derive(PartialEq, Debug, Copy, Clone)]
-/// Represents the allowed addressing modes
+/// Represents a place a value can come from: a register, a memory address, a pointer to memory stored in a register, or a literal value.
 pub enum Address {
-    /// A literal register, like R1
+    /// A literal register, like R1.
     RegAbs(Register),
-    /// A literal memory address, like 0x10
+    /// A literal memory address, like 0x10.
     MemAbs(Word),
-    /// A memory address stored in a register
+    /// A memory address stored in a register. This serves as one level of indirection; 
+    /// for multiple indirection, multiple instructions must be used.
     MemReg(Register),
-    /// A literal value. Writing to a literal value is a fault
+    /// A literal value. Writing to a literal value is a fault.
     Literal(Word),
 
 }
