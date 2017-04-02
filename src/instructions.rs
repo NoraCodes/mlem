@@ -55,6 +55,10 @@ pub enum Instruction {
     Output(Address),
     /// Pop from the input into a
     Input(Address),
+    /// Add the unsigned a to b, storing the result in a
+    Add(Address, Address),
+    /// Subtract the unsigned b from a, storing the result in a
+    Sub(Address, Address),
     /// Gracefully shut down the machine
     Halt,
     /// An illegal instruction. Executing this is a Fault.

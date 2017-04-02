@@ -1,7 +1,39 @@
 use std::io::{Cursor, Seek};
 use std::rc::Rc;
-use byteorder::{BigEndian, ReadBytesExt};
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use super::*;
+
+fn test_prog_io(program: Program, input: Vec<u64>) -> (Outcome, Vec<u64>, u64) {
+    // Create and fill a buffer of u8s with the values of the given u64s, in big endian
+    let mut internal_input = Cursor::new(Vec::with_capacity(input.len() * 8));
+    for v in input {
+        internal_input.write_u64::<BigEndian>(v).unwrap();
+    }
+    internal_input.seek(std::io::SeekFrom::Start(0)).unwrap();
+
+    // Create output buffer
+    let mut internal_output = Cursor::new(Vec::new());
+    
+    // Actually run the machine.
+    let o;
+    let cycles;
+    {
+        let mut m = Machine::new(128, &mut internal_input, &mut internal_output);
+
+        m.load_program(program);
+        let (a, b) = m.run_for(1024);
+        o = a;
+        cycles = b;
+    }
+    // Compose output into u64 values
+    let mut output = Vec::new();
+    internal_output.seek(std::io::SeekFrom::Start(0)).unwrap();
+    while let Ok(v) = internal_output.read_u64::<BigEndian>() {
+        output.push(v);
+    }
+
+    (o, output, cycles)
+}
 
 #[test]
 fn test_get_set_memory() {
@@ -98,4 +130,29 @@ fn test_run() {
 
     let final_outcome = m.run();
     assert!(final_outcome == Outcome::Halt, "Program produced {:?} rather than halting.", final_outcome);
+}
+
+#[test]
+fn test_scalar_arith() {
+    let input = vec![2, 2, 2, 2];
+    let expected = vec![4, 0];
+    let program = vec![
+        // Get all input values
+        Instruction::Input(Address::RegAbs(Register::R0)),
+        Instruction::Input(Address::RegAbs(Register::R1)),
+        Instruction::Input(Address::RegAbs(Register::R2)),
+        Instruction::Input(Address::RegAbs(Register::R3)),
+        // Perform arithmetic
+        Instruction::Add(Address::RegAbs(Register::R0), Address::RegAbs(Register::R1)),
+        Instruction::Sub(Address::RegAbs(Register::R2), Address::RegAbs(Register::R3)),
+        // Output computed values
+        Instruction::Output(Address::RegAbs(Register::R0)),
+        Instruction::Output(Address::RegAbs(Register::R2)),
+        // Halt
+        Instruction::Halt
+    ];
+
+    let (outcome, output, _) = test_prog_io(program, input);
+    assert!(outcome == Outcome::Halt, "Program did not successfully halt! {:?}", outcome);
+    assert!(output == expected, "Program did not produce {:?} as expected, but rather {:?}.", expected, output);
 }

@@ -37,7 +37,7 @@ pub struct Machine<'mach> {
     /// Memory used by the machine
     memory: Vec<Word>,
     /// Program code for the machine
-    program: Vec<Instruction>,
+    program: Program,
     /// A reader to get input for the machine
     input: &'mach mut Read,
     /// A writer into which to put output from the machine
@@ -174,6 +174,8 @@ impl <'mach> Machine <'mach> {
             Move(a, b) => { self.ins_move(a, b) },
             Output(a) => { self.ins_output(a) },
             Input(a) => { self.ins_input(a) },
+            Add(a, b) => { self.ins_generic_scalar(a, b, |va, vb| va + vb) },
+            Sub(a, b) => { self.ins_generic_scalar(a, b, |va, vb| va - vb) },
             Halt => { self.ins_halt() },
             Illegal => { Outcome::Fault("Illegal instruction encountered.".into()) },
         }
@@ -184,7 +186,7 @@ impl <'mach> Machine <'mach> {
     pub fn run(&mut self) -> Outcome {
         loop {
             match self.execute_next() {
-                Outcome::Continue => { continue; },
+                Outcome::Continue => { },
                 other => { return other; }
             }
         }
@@ -249,6 +251,16 @@ impl <'mach> Machine <'mach> {
             Err(e) => { 
             Outcome::Fault(format!("Failed to read on input instruction: {}.", e))
             }
+        }
+    }
+
+    /// Execute any 2-register scalar instruction
+    fn ins_generic_scalar<F: FnOnce(u64, u64) -> u64>(&mut self, a: Address, b: Address, f: F) -> Outcome {
+        let value_a = self.read_addr(a);
+        let value_b = self.read_addr(b);
+        match self.write_addr(a, f(value_a, value_b)) {
+            Outcome::Continue => { self.next_instr() },
+            other => other
         }
     }
 }
