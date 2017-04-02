@@ -18,8 +18,11 @@ pub enum Outcome {
     Continue
 }
 
-/// Represents the state of a machine.
-pub struct Machine {
+/// Represents the state of a machine, including its registers, its memory,
+/// its I/O Read and Write, and its program. The associated lifetime `'mach`
+/// represents the life of the machine; its I/O connections must live at 
+/// least that long.
+pub struct Machine<'mach> {
     /// The amount of memory the machine can use, at maximum.
     max_words: usize,
     /// The eight general purpouse registers, used for program operation.
@@ -36,14 +39,14 @@ pub struct Machine {
     /// Program code for the machine
     program: Vec<Instruction>,
     /// A reader to get input for the machine
-    input: Box<Read>,
+    input: &'mach mut Read,
     /// A writer into which to put output from the machine
-    output: Box<Write>
+    output: &'mach mut Write
 }
 
-impl Machine {
+impl <'mach> Machine <'mach> {
     /// Create a new Machine connected to the given I/O ports.
-    pub fn new(max_words: usize, input: Box<Read>, output: Box<Write>) -> Self {
+    pub fn new(max_words: usize, input: &'mach mut Read, output: &'mach mut Write) -> Self {
         Self {
             max_words: max_words,
             registers: [0; 8],
@@ -196,23 +199,27 @@ impl Machine {
        }
     }
     
-    /// Execute an Input instruction
-    fn ins_input(&mut self, a: Address) -> Outcome {
+    /// Execute an Output instruction
+    fn ins_output(&mut self, a: Address) -> Outcome {
         let v = self.read_addr(a);
-        if let Err(e) = self.output.write_u64::<BigEndian>(v) { 
-            Outcome::Fault(format!("Failed to write on output instruction.")) 
-        } 
-        else { self.next_instr() }
+        match self.output.write_u64::<BigEndian>(v) {
+            Ok(_) => { self.next_instr() }
+            Err(e) => { Outcome::Fault(format!("Failed to write on output instruction: {}.", e)) }
+        }
     }
 
-    fn ins_output(&mut self, a: Address) -> Outcome {
-        if let Ok(v) = self.input.read_u64::<BigEndian>() {
-            match self.write_addr(a, v) {
-                Outcome::Continue => { self.next_instr() },
-                o => o
+    /// Execute and Input instruction
+    fn ins_input(&mut self, a: Address) -> Outcome {
+        match self.input.read_u64::<BigEndian>() {
+            Ok(v) => {
+                match self.write_addr(a, v) {
+                    Outcome::Continue => { self.next_instr() },
+                    o => o
+                }
+            },
+            Err(e) => { 
+            Outcome::Fault(format!("Failed to read on input instruction: {}.", e))
             }
-        } else { 
-            Outcome::Fault(format!("Failed to read on input instruction."))
         }
     }
 }
