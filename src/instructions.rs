@@ -55,4 +55,8 @@ pub enum Instruction {
     Output(Address),
     /// Pop from the input into a
     Input(Address),
+    /// Gracefully shut down the machine
+    Halt,
+    /// An illegal instruction. Executing this is a Fault.
+    Illegal,
 }

@@ -33,8 +33,8 @@ fn test_reg_instructions() {
         Address::RegAbs(Register::R0)
     );
 
-    // Load a program with just the one instruction
-    m.load_program(vec![instr]);
+    // Load a program with just the one instruction and a Halt to prevent Faulting
+    m.load_program(vec![instr, Instruction::Halt]);
 
     // Run one instruction forward
     let o = m.execute_next();
@@ -55,8 +55,8 @@ fn test_io_instructions() {
             Address::Literal(0xDEADBEEF)
         );
 
-        // Load a program with just the one instruction
-        m.load_program(vec![instr]);
+        // Load a program with just the one instruction and a Halt to prevent Faulting
+        m.load_program(vec![instr, Instruction::Halt]);
 
         // Run one instruction.
         let outcome = m.execute_next();
@@ -70,4 +70,32 @@ fn test_io_instructions() {
         Ok(v) => assert!( v == 0xDEADBEEF, "Ouput was not the expected {:?} but rather {:?}.", 0xDEADBEEFu64, v),
         Err(e) => panic!("Failed to read from output buffer: {}. Buffer is: {:?}", e, output.get_ref())
     }
+}
+
+#[test]
+fn test_run() {
+    let mut input:  Cursor<Vec<u8>> = Cursor::new(Vec::with_capacity(128));
+    let mut output: Cursor<Vec<u8>> = Cursor::new(Vec::with_capacity(128));
+    let mut m = Machine::new(128, &mut input, &mut output);
+
+    let memory = vec![0, 1, 2, 3, 4];
+    let mem_copy = memory.clone();
+
+    // A 4-instruction program.
+    let program = vec![
+        Instruction::NoOp,
+        Instruction::NoOp,
+        Instruction::NoOp,
+        Instruction::NoOp,
+        Instruction::Halt,
+    ];
+
+    m.load_program(program);
+
+    let (limited_outcome, instructions_executed) = m.run_for(3);
+    assert!(limited_outcome == Outcome::Continue, "Program produced {:?} after {:?} NoOp instructions.", limited_outcome, instructions_executed);
+    assert!(instructions_executed == 3, "Program reports executing {:?} instructions rather than the 3 expected.", instructions_executed);
+
+    let final_outcome = m.run();
+    assert!(final_outcome == Outcome::Halt, "Program produced {:?} rather than halting.", final_outcome);
 }

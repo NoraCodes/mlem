@@ -54,7 +54,7 @@ impl <'mach> Machine <'mach> {
             bp: 0,
             ip: 0,
             memory: Vec::new(),
-            program: Vec::new(),
+            program: vec![Instruction::Illegal],
             input: input,
             output: output,
         }
@@ -74,11 +74,11 @@ impl <'mach> Machine <'mach> {
     /// Replace the machine's memory with the given vector.
     pub fn load_memory(&mut self, new: Vec<Word>) { self.memory = new; }
 
-    /// Advance to the next instruction.
+    /// Advance to the next instruction (i.e., increment IP). This can cause a Fault, if IP ends up off the end.
     pub fn next_instr(&mut self) -> Outcome {
         self.ip += 1;
-        if self.ip > self.program.len() {
-            Outcome::Fault(format!("IP beyond program length: {}", self.ip))
+        if self.ip >= self.program.len() {
+            Outcome::Fault(format!("IP beyond program length. IP = {}, length = {}", self.ip, self.program.len()))
         } else {
             Outcome::Continue
         }
@@ -173,14 +173,43 @@ impl <'mach> Machine <'mach> {
             Zero(a) => { self.ins_zero(a) },         
             Move(a, b) => { self.ins_move(a, b) },
             Output(a) => { self.ins_output(a) },
-            Input(a) => { self.ins_input(a) }, 
+            Input(a) => { self.ins_input(a) },
+            Halt => { self.ins_halt() },
+            Illegal => { Outcome::Fault("Illegal instruction encountered.".into()) },
         }
+    }
+
+    /// Execute instructions until a Halt or Fault occurs.
+    /// _BEWARE: This may run forever!_
+    pub fn run(&mut self) -> Outcome {
+        loop {
+            match self.execute_next() {
+                Outcome::Continue => { continue; },
+                other => { return other; }
+            }
+        }
+    }
+
+    /// Execute at most the given number of instructions, also stopping on a Halt or Fault condition.
+    /// Returns the Outcome of the last instruction and the number of instructions executed.
+    pub fn run_for(&mut self, cycles: u64) -> (Outcome, u64) {
+        let mut instructions_remaining = cycles;
+        while instructions_remaining > 0 {
+            match self.execute_next() {
+                Outcome::Continue => { instructions_remaining -= 1; },
+                other => { return (other, cycles - instructions_remaining); }
+            }
+        }
+        (Outcome::Continue, cycles - instructions_remaining)
     }
 
     /// Execute a NoOp instruction
     fn ins_no_op(&mut self) -> Outcome {
         self.next_instr()
     }
+
+    /// Execute a Halt instruction
+    fn ins_halt(&mut self) -> Outcome { Outcome::Halt }
     
     /// Execute a Move instruction
     fn ins_move(&mut self, a: Address, b: Address) -> Outcome {
@@ -208,7 +237,7 @@ impl <'mach> Machine <'mach> {
         }
     }
 
-    /// Execute and Input instruction
+    /// Execute an Input instruction
     fn ins_input(&mut self, a: Address) -> Outcome {
         match self.input.read_u64::<BigEndian>() {
             Ok(v) => {
