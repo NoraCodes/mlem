@@ -34,6 +34,9 @@
 //! ```
 
 extern crate byteorder;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_cbor;
 
 mod types;
 pub use types::*;
@@ -44,6 +47,8 @@ mod test_machine;
 pub use machine::*;
 
 mod instructions;
+#[cfg(test)]
+mod test_instructions;
 pub use instructions::*;
 
 /// Given a Program (that is, a Vec of Instructions), this function will manage creating a Machine and hooking up its 

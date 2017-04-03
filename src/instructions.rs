@@ -1,6 +1,6 @@
 use types::*;
 
-#[derive(PartialEq, Debug, Copy, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 /// Represents a place a value can come from: a register, a memory address, a pointer to memory stored in a register, or a literal value.
 pub enum Address {
     /// A literal register, like R1.
@@ -15,7 +15,7 @@ pub enum Address {
 
 }
 
-#[derive(PartialEq, Debug, Copy, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 /// Specifies a register in the machine. 
 ///
 /// This doesn't include the instruction pointer. You have to use  use jump instructions
@@ -43,7 +43,7 @@ pub enum Register {
     BP,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 /// Possible instructions for the machine to execute.
 /// For each instruction, the first operand is a, second is b, et cetera
 pub enum Instruction {
