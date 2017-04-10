@@ -120,7 +120,62 @@ fn test_scalar_arith() {
         Instruction::Halt
     ];
 
-    let (outcome, _, output) = execute(program, input);
+    let (outcome, _, output) = execute(program, input, Some(10));
     assert!(outcome == Outcome::Halt, "Program did not successfully halt! {:?}", outcome);
+    assert!(output == expected, "Program did not produce {:?} as expected, but rather {:?}.", expected, output);
+}
+
+#[test]
+fn test_jump() {
+    let input = vec![1, 2, 3];
+    let expected = vec![1, 3];
+    // Explaination: Loads input into the first three GPRs, then outputs the same numbers again, but
+    // uses a jump instruction to skip outputing the second number
+    let program = vec![
+        // Get all input values
+        Instruction::Input(Address::RegAbs(Register::R0)), // 0
+        Instruction::Input(Address::RegAbs(Register::R1)), // 1
+        Instruction::Input(Address::RegAbs(Register::R2)), // 2
+        // Output computed values
+        Instruction::Output(Address::RegAbs(Register::R0)), // 3
+        Instruction::Jump(Address::Literal(6)),             // 4
+        Instruction::Output(Address::RegAbs(Register::R1)), // 5 GETS SKIPPED
+        Instruction::Output(Address::RegAbs(Register::R2)), // 6
+        // Halt
+        Instruction::Halt
+    ];
+
+    let (outcome, _, output) = execute(program, input, Some(10));
+    assert!(outcome == Outcome::Halt, "Program did not successfully halt! {:?}", outcome);
+    assert!(output == expected, "Program did not produce {:?} as expected, but rather {:?}.", expected, output);
+}
+
+#[test]
+fn test_conditional_jump() {
+    let input = vec![1, 2, 3];
+    let expected = vec![1, 2, 3, 1, 2, 3];
+    // Explaination: Loads input into the first three GPRs, then outputs the same numbers again, and uses
+    // a jump instruction to print them again.
+    let program = vec![
+        // Set the counter
+        Instruction::Move(Address::Literal(2), Address::RegAbs(Register::R7)), // 0
+        // Get all input values
+        Instruction::Input(Address::RegAbs(Register::R0)), // 1
+        Instruction::Input(Address::RegAbs(Register::R1)), // 2
+        Instruction::Input(Address::RegAbs(Register::R2)), // 3
+        // Output computed values
+        Instruction::Output(Address::RegAbs(Register::R0)), // 4
+        Instruction::Output(Address::RegAbs(Register::R1)), // 5
+        Instruction::Output(Address::RegAbs(Register::R2)), // 6
+        // Loop
+        Instruction::Sub(Address::RegAbs(Register::R7), Address::Literal(1)), // 7
+        Instruction::JumpNotZero(Address::Literal(4), Address::RegAbs(Register::R7)), // 8
+        // Halt
+        Instruction::Halt // 9
+
+    ];
+
+    let (outcome, _, output) = execute(program, input, Some(10));
+    //assert!(outcome == Outcome::Halt, "Program did not successfully halt! {:?}", outcome);
     assert!(output == expected, "Program did not produce {:?} as expected, but rather {:?}.", expected, output);
 }

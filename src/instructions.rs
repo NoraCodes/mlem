@@ -61,6 +61,12 @@ pub enum Instruction {
     Add(Address, Address),
     /// Subtract the unsigned b from a, storing the result in a
     Sub(Address, Address),
+    /// Uncontitionally jump to the position given by a
+    Jump(Address),
+    /// Jump to a if the value at b is 0
+    JumpIfZero(Address, Address),
+    /// Jump to a if the value at b is NOT zero
+    JumpNotZero(Address, Address),
     /// Gracefully shut down the machine
     Halt,
     /// An illegal instruction. Executing this is a Fault.

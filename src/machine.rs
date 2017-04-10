@@ -166,6 +166,17 @@ impl <'mach> Machine <'mach> {
         else { self.memory[l] }
     }
 
+    fn absolute_jump(&mut self, l: JumpLocation) -> Outcome {
+        if l < self.program.len() {
+            self.ip = l;
+            Outcome::Continue 
+            }
+        else { 
+        Outcome::Fault(
+            format!("Attempt to jump to {} would overrun program of length {}.", l, self.program.len())) 
+        }
+    }
+
     pub fn execute_next(&mut self) -> Outcome {
         use Instruction::*;
         // This index operation is safe because next_instr faults if IP goes over the 
@@ -178,6 +189,9 @@ impl <'mach> Machine <'mach> {
             Input(a) => { self.ins_input(a) },
             Add(a, b) => { self.ins_generic_scalar(a, b, |va, vb| va + vb) },
             Sub(a, b) => { self.ins_generic_scalar(a, b, |va, vb| va - vb) },
+            Jump(a) => { self.ins_jump(a) },
+            JumpIfZero(a, b) => { self.ins_generic_jump_single(a, b, |v| v == 0) },
+            JumpNotZero(a, b) => { self.ins_generic_jump_single(a, b, |v| v != 0) },
             Halt => { self.ins_halt() },
             Illegal => { Outcome::Fault("Illegal instruction encountered.".into()) },
         }
@@ -257,7 +271,7 @@ impl <'mach> Machine <'mach> {
     }
 
     /// Execute any 2-register scalar instruction
-    fn ins_generic_scalar<F: FnOnce(u64, u64) -> u64>(&mut self, a: Address, b: Address, f: F) -> Outcome {
+    fn ins_generic_scalar<F: FnOnce(Word, Word) -> Word>(&mut self, a: Address, b: Address, f: F) -> Outcome {
         let value_a = self.read_addr(a);
         let value_b = self.read_addr(b);
         match self.write_addr(a, f(value_a, value_b)) {
@@ -265,4 +279,21 @@ impl <'mach> Machine <'mach> {
             other => other
         }
     }
+
+    /// Execute an unconditional jump
+    fn ins_jump(&mut self, a: Address) -> Outcome {
+        let addr = self.read_addr(a) as JumpLocation;
+        self.absolute_jump(addr)
+    }
+
+    /// Execute any one-operand jump
+    fn ins_generic_jump_single<F: FnOnce(Word) -> bool>(&mut self, a: Address, b: Address, f: F) -> Outcome {
+        let value_a = self.read_addr(a) as JumpLocation;
+        let value_b = self.read_addr(b);
+        if f(value_b) {
+            self.absolute_jump(value_a)
+        } else {
+            self.next_instr()
+        }
+    } 
 }

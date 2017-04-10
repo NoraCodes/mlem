@@ -28,7 +28,8 @@
 //!     Instruction::Halt
 //! ];
 //!
-//! let (outcome, _, output) = execute(program, input);
+//! // The last value here is the maximum number of instructions to let the program run for.
+//! let (outcome, _, output) = execute(program, input, Some(10));
 //! assert!(outcome == Outcome::Halt, "Program did not successfully halt! {:?}", outcome);
 //! assert!(output == expected, "Program did not produce {:?} as expected, but rather {:?}.", expected, output);
 //! ```
@@ -54,7 +55,7 @@ pub use instructions::*;
 /// Given a Program (that is, a Vec of Instructions), this function will manage creating a Machine and hooking up its 
 /// Input and Output for you. It returns a tuple of the final outcome of the program, the number of instructions executed, and
 /// a Vector of the output.
-pub fn execute(program: Program, input: Vec<u64>) -> (Outcome, u64, Vec<u64>) {
+pub fn execute(program: Program, input: Vec<u64>, limit: Option<u64>) -> (Outcome, u64, Vec<u64>) {
     use std::io::{Cursor, Seek};
     use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
     // Create and fill a buffer of u8s with the values of the given u64s, in big endian
@@ -74,6 +75,7 @@ pub fn execute(program: Program, input: Vec<u64>) -> (Outcome, u64, Vec<u64>) {
         let mut m = Machine::new(128, &mut internal_input, &mut internal_output);
 
         m.load_program(program);
+        let actual_limit = limit.unwrap_or(u64::max_value());
         let (a, b) = m.run_for(u64::max_value());
         o = a;
         cycles = b;
