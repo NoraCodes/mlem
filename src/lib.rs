@@ -29,9 +29,9 @@
 //! ];
 //!
 //! // The last value here is the maximum number of instructions to let the program run for.
-//! let (outcome, _, output) = execute(program, input, Some(10));
+//! let (outcome, cycles, output) = execute(program, input, Some(10));
 //! assert!(outcome == Outcome::Halt, "Program did not successfully halt! {:?}", outcome);
-//! assert!(output == expected, "Program did not produce {:?} as expected, but rather {:?}.", expected, output);
+//! assert!(output == expected, "Program did not produce {:?} as expected, but rather {:?}, in {} cycles.", expected, output, cycles);
 //! ```
 
 extern crate byteorder;
