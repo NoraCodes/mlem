@@ -76,7 +76,7 @@ pub fn execute(program: Program, input: Vec<u64>, limit: Option<u64>) -> (Outcom
 
         m.load_program(program);
         let actual_limit = limit.unwrap_or(u64::max_value());
-        let (a, b) = m.run_for(u64::max_value());
+        let (a, b) = m.run_for(actual_limit);
         o = a;
         cycles = b;
     }

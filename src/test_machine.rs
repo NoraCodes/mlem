@@ -175,7 +175,39 @@ fn test_conditional_jump() {
 
     ];
 
-    let (outcome, _, output) = execute(program, input, Some(10));
-    //assert!(outcome == Outcome::Halt, "Program did not successfully halt! {:?}", outcome);
+    let (outcome, _, output) = execute(program, input, Some(30));
+    assert!(outcome == Outcome::Halt, "Program did not successfully halt! {:?}", outcome);
+    assert!(output == expected, "Program did not produce {:?} as expected, but rather {:?}.", expected, output);
+}
+
+#[test]
+fn test_stack() {
+    let input = vec![1, 2, 3];
+    let expected = vec![3, 2, 1, 0];
+    // Explaination: Loads input into the stack, then pops it off and outputs it.
+    let program = vec![
+        // Set the counter
+        Instruction::Move(Address::Literal(3), Address::RegAbs(Register::R7)), // 0
+        // Get all input values
+        Instruction::Input(Address::RegAbs(Register::R0)), // 1
+        Instruction::Push(Address::RegAbs(Register::R0)), // 2
+        // Loop
+        Instruction::Sub(Address::RegAbs(Register::R7), Address::Literal(1)), // 3
+        Instruction::JumpNotZero(Address::Literal(1), Address::RegAbs(Register::R7)), // 4
+        // Set the counter
+        Instruction::Move(Address::Literal(4), Address::RegAbs(Register::R7)), // 0
+        // Output computed values
+        Instruction::Pop(Address::RegAbs(Register::R0)), // 6
+        Instruction::Output(Address::RegAbs(Register::R0)), // 7
+        // Loop
+        Instruction::Sub(Address::RegAbs(Register::R7), Address::Literal(1)), // 8
+        Instruction::JumpNotZero(Address::Literal(6), Address::RegAbs(Register::R7)), // 9
+        // Halt
+        Instruction::Halt // 10
+
+    ];
+
+    let (outcome, _, output) = execute(program, input, Some(40));
+    assert!(outcome == Outcome::Halt, "Program did not successfully halt! {:?}", outcome);
     assert!(output == expected, "Program did not produce {:?} as expected, but rather {:?}.", expected, output);
 }

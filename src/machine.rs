@@ -52,10 +52,11 @@ impl <'mach> Machine <'mach> {
         Self {
             max_words: max_words,
             registers: [0; 8],
-            sp: 0,
-            bp: 0,
+            // Both SP and BP start at the top of memory; the stack grows downwards.
+            sp: (max_words - 1) as u64,
+            bp: (max_words - 1) as u64,
             ip: 0,
-            memory: Vec::new(),
+            memory: Vec::with_capacity(max_words),
             program: vec![Instruction::Illegal],
             input: input,
             output: output,
@@ -151,7 +152,7 @@ impl <'mach> Machine <'mach> {
         if l > self.max_words { return Outcome::Fault(
                 format!("Tried to write out of available memory: {}", l)); }
         // OK, within the provided memory. Resize if needed.
-        if l > self.memory.len() { self.memory.resize(l as usize, 0); }
+        if l > self.memory.len() { self.memory.resize(l+1 as usize, 0); }
         self.memory[l] = v;
         Outcome::Continue
     }
@@ -187,11 +188,13 @@ impl <'mach> Machine <'mach> {
             Move(a, b) => { self.ins_move(a, b) },
             Output(a) => { self.ins_output(a) },
             Input(a) => { self.ins_input(a) },
-            Add(a, b) => { self.ins_generic_scalar(a, b, |va, vb| va + vb) },
-            Sub(a, b) => { self.ins_generic_scalar(a, b, |va, vb| va - vb) },
+            Add(a, b) => { self.ins_generic_scalar(a, b, |va, vb| va.wrapping_add(vb)) },
+            Sub(a, b) => { self.ins_generic_scalar(a, b, |va, vb| va.wrapping_sub(vb)) },
             Jump(a) => { self.ins_jump(a) },
             JumpIfZero(a, b) => { self.ins_generic_jump_single(a, b, |v| v == 0) },
             JumpNotZero(a, b) => { self.ins_generic_jump_single(a, b, |v| v != 0) },
+            Push(a) => { self.ins_push(a) },
+            Pop(a) => { self.ins_pop(a) },
             Halt => { self.ins_halt() },
             Illegal => { Outcome::Fault("Illegal instruction encountered.".into()) },
         }
@@ -295,5 +298,37 @@ impl <'mach> Machine <'mach> {
         } else {
             self.next_instr()
         }
-    } 
+    }
+
+    /// Execute a push instruction. Causes a fault if the stack has overrun the available
+    /// memory.
+    fn ins_push(&mut self, a: Address) -> Outcome {
+        let val = self.read_addr(a);
+        // Scope for mutable borrow
+        self.sp -= 1;
+        if self.sp <= 0 { Outcome::Fault("Stack has overrun available memory!".into()) }
+        else {
+            // Copy out of immutable ref to self to satisfy borrow checker
+            let location = self.sp; 
+            self.write_memory(location, val);
+            self.next_instr()
+         }
+    }
+
+    /// Execute a pop instruction. If the stack is empty, this does not fault, but sets the target to
+    /// zero.
+    fn ins_pop(&mut self, a: Address) -> Outcome {
+        let val = if self.sp >= self.bp {
+            self.sp = self.bp;
+            0 
+        } else {
+            self.read_memory(self.sp)
+        };
+        self.sp += 1;
+
+        match self.write_addr(a, val) {
+            Outcome::Continue => { self.next_instr() },
+            other => other
+        }
+    }
 }

@@ -67,6 +67,10 @@ pub enum Instruction {
     JumpIfZero(Address, Address),
     /// Jump to a if the value at b is NOT zero
     JumpNotZero(Address, Address),
+    /// Push a to the stack
+    Push(Address),
+    /// Pop a value from the stack into the given address
+    Pop(Address),
     /// Gracefully shut down the machine
     Halt,
     /// An illegal instruction. Executing this is a Fault.
