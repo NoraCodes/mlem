@@ -9,6 +9,7 @@ repository = "https://github.com/SilverWingedSeraph/mlem"
 documentation = "https://docs.rs/mlem"
 readme = "README.md"
 categories = ["emulators", "science"]
+license = "MIT"
 
 [dependencies]
 byteorder = "^1"
