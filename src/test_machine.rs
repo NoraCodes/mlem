@@ -1,6 +1,5 @@
 use std::io::{Cursor, Seek};
-use std::rc::Rc;
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use byteorder::{BigEndian, ReadBytesExt};
 use super::*;
 
 #[test]
@@ -77,9 +76,6 @@ fn test_run() {
     let mut input:  Cursor<Vec<u8>> = Cursor::new(Vec::with_capacity(128));
     let mut output: Cursor<Vec<u8>> = Cursor::new(Vec::with_capacity(128));
     let mut m = Machine::new(128, &mut input, &mut output);
-
-    let memory = vec![0, 1, 2, 3, 4];
-    let mem_copy = memory.clone();
 
     // A 4-instruction program.
     let program = vec![
@@ -208,6 +204,27 @@ fn test_stack() {
     ];
 
     let (outcome, _, output) = execute(program, input, Some(40));
+    assert!(outcome == Outcome::Halt, "Program did not successfully halt! {:?}", outcome);
+    assert!(output == expected, "Program did not produce {:?} as expected, but rather {:?}.", expected, output);
+}
+
+#[test]
+fn test_pointer_memory_access() {
+    let input = vec![0];
+    let expected = vec![0xff];
+    // Explaination: Loads input into the stack, then pops it off and outputs it.
+    let program = vec![
+        // Set R0 = 16
+        Instruction::Move(Address::Literal(0xf), Address::RegAbs(Register::R0)),
+        // Set mem[0xf] = 0xff
+        Instruction::Move(Address::Literal(0xff), Address::MemReg(Register::R0)),
+        // Read mem[0xf] and output
+        Instruction::Output(Address::MemReg(Register::R0)),
+        // Halt
+        Instruction::Halt // 10
+
+    ];
+    let (outcome, _, output) = execute(program, input, Some(5));
     assert!(outcome == Outcome::Halt, "Program did not successfully halt! {:?}", outcome);
     assert!(output == expected, "Program did not produce {:?} as expected, but rather {:?}.", expected, output);
 }

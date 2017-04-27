@@ -97,7 +97,10 @@ impl <'mach> Machine <'mach> {
                     format!("Tried to write {} to literal {}.", v, l)) },
             RegAbs(r) => { self.write_register(r, v); Outcome::Continue  },
             MemAbs(l) => { self.write_memory(l, v) },
-            MemReg(r) => { unimplemented!() }
+            MemReg(r) => {
+                let location = self.read_register(r); 
+                self.write_memory(location, v) 
+            }
         }
     }
 
@@ -108,7 +111,7 @@ impl <'mach> Machine <'mach> {
             Literal(v) => { v },
             RegAbs(r) => { self.read_register(r) },
             MemAbs(l) => { self.read_memory(l) },
-            MemReg(r) => {unimplemented!()}
+            MemReg(r) => { self.read_memory(self.read_register(r)) }
         }
     }
 
