@@ -8,7 +8,7 @@ pub type Word = u64;
 /// so it should be indexable.
 pub type JumpLocation = usize;
 
-/// Represents a program; a list of instructions, to be executed in order.
 use instructions::Instruction;
+/// Represents a program; a list of instructions, to be executed in order.
 pub type Program = Vec<Instruction>;
 
