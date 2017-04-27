@@ -1,8 +1,12 @@
 # MLeM
+
+[![Crates.io version badge](https://img.shields.io/crates/v/mlem.svg)](https://crates.io/crates/mlem)
+[![Docs.rs version badge](https://docs.rs/mlem/badge.svg)](https://docs.rs/mlem/)
+
 The Machine Learning Machine is a 64-bit virtual Harvard-arch
 machine for evolutionary algorithms to program against.
 
-The machine has eight GPRs (`R0` through `R7`), a hardware stack with SP and BP, 
+The machine has eight GPRs (`R0` through `R7`), a hardware stack with `SP` and `BP`, 
 and hardware I/O with Input and Output. 
  
 These I/O instructions write out whole `u64`s in big endian using `byteorder`.
