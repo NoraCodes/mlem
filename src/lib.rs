@@ -2,11 +2,11 @@
 //! The Machine Learning Machine is a 64-bit virtual Harvard-arch
 //! machine for evolutionary algorithms to program against.
 //!
-//! The machine has eight GPRs (`R0` through `R7`), a hardware stack with SP and BP, 
-//! and hardware I/O with Input and Output. 
-//! 
+//! The machine has eight GPRs (`R0` through `R7`), a hardware stack with SP and BP,
+//! and hardware I/O with Input and Output.
+//!
 //! These I/O instructions write out whole `u64`s in big endian.
-//! 
+//!
 //! # Example
 //! ```
 //! use mlem::{execute, Instruction, Address, Register, Outcome};
@@ -45,7 +45,7 @@ extern crate serde_cbor;
 mod virtual_machine;
 //mod assembler;
 
-pub use virtual_machine::{Outcome, execute};
+pub use virtual_machine::{execute, Outcome};
 
 #[cfg(test)]
 mod test_instructions;
@@ -68,16 +68,15 @@ pub enum Address {
     RegAbs(Register),
     /// A literal memory address, like 0x10.
     MemAbs(Word),
-    /// A memory address stored in a register. This serves as one level of indirection; 
+    /// A memory address stored in a register. This serves as one level of indirection;
     /// for multiple indirection, multiple instructions must be used.
     MemReg(Register),
     /// A literal value. Writing to a literal value is a fault.
     Literal(Word),
-
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
-/// Specifies a register in the machine. 
+/// Specifies a register in the machine.
 ///
 /// This doesn't include the instruction pointer. You have to use  use jump instructions
 /// to mess with that.
@@ -137,4 +136,3 @@ pub enum Instruction {
     /// An illegal instruction. Executing this is a Fault.
     Illegal,
 }
-
