@@ -1,5 +1,6 @@
 [package]
 name = "mlem"
+edition = "2018"
 version = "0.1.0"
 authors = ["SilverWingedSeraph <lfstindall@gmail.com>"]
 description = "A 64-bit Harvard The Machine Learning Machine is a 64-bit virtual Harvard-arch machine for evolutionary algorithms to program against. The machine has eight GPRs (`R0` through `R7`), a hardware stack with SP and BP, and hardware I/O with Input and Output. "

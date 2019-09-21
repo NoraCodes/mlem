@@ -1,7 +1,6 @@
-use types::*;
-use instructions::*;
 use serde_cbor::ser::to_vec_sd;
 use serde_cbor::de::from_slice;
+use crate::{Instruction, Address, Register, Program};
 
 #[test]
 fn test_cbor_serde() {
