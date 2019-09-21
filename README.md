@@ -11,6 +11,11 @@ and hardware I/O with Input and Output.
  
 These I/O instructions write out whole `u64`s in big endian using `byteorder`.
 
+## Features
+
+The `serialize` feature imports `serde` and derives `Serialize` and `Deserialize` on all
+types. It is enabled by default.
+
 ## Example
 
 This example shows a simple program being executed by the MLeM managed execution routine.

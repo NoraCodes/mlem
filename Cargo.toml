@@ -12,8 +12,11 @@ readme = "README.md"
 categories = ["emulators", "science"]
 license = "AGPL-3.0-only"
 
+[features]
+default = ["serialize"]
+serialize = ["serde", "serde_derive"]
+
 [dependencies]
-byteorder = "^1"
-serde = "^0.9"
-serde_derive = "^0.9"
-serde_cbor = "^0.5"
+byteorder = "1"
+serde = { version = "1", optional = true }
+serde_derive = { version = "1", optional = true }

@@ -38,15 +38,16 @@
 //! ```
 
 extern crate byteorder;
+
+#[cfg(feature = "serialize")]
+extern crate serde;
+
 #[macro_use]
+#[cfg(feature = "serialize")]
 extern crate serde_derive;
-extern crate serde_cbor;
 
 pub mod virtual_machine;
 //mod assembler;
-
-#[cfg(test)]
-mod test_instructions;
 
 /// Represents a machine word - an atomic int, a pointer, etc.
 /// Words are u64s; signed math has to do conversion.
@@ -59,7 +60,8 @@ pub type JumpLocation = usize;
 /// Represents a program; a list of instructions, to be executed in order.
 pub type Program = Vec<Instruction>;
 
-#[derive(Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[derive(PartialEq, Debug, Copy, Clone)]
 /// Represents a place a value can come from: a register, a memory address, a pointer to memory stored in a register, or a literal value.
 pub enum Address {
     /// A literal register, like R1.
@@ -73,7 +75,8 @@ pub enum Address {
     Literal(Word),
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[derive(PartialEq, Debug, Copy, Clone)]
 /// Specifies a register in the machine.
 ///
 /// This doesn't include the instruction pointer. You have to use  use jump instructions
@@ -101,7 +104,8 @@ pub enum Register {
     BP,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[derive(PartialEq, Debug, Copy, Clone)]
 /// Possible instructions for the machine to execute.
 /// For each instruction, the first operand is a, second is b, et cetera
 pub enum Instruction {

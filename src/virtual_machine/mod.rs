@@ -396,7 +396,6 @@ impl<'mach> Machine<'mach> {
 /// Input and Output for you. It returns a tuple of the final outcome of the program, the number of instructions executed, and
 /// a Vector of the output.
 pub fn execute(program: Program, input: Vec<u64>, limit: Option<u64>) -> (Outcome, u64, Vec<u64>) {
-    use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
     use std::io::{Cursor, Seek};
     // Create and fill a buffer of u8s with the values of the given u64s, in big endian
     let mut internal_input = Cursor::new(Vec::with_capacity(input.len() * 8));
