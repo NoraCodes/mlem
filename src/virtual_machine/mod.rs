@@ -1,6 +1,9 @@
+//! A virtual machine capable of executing MLeM in-memory representation.
 use crate::*;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use std::io::{Read, Write};
+#[cfg(test)]
+mod test_machine;
 
 /// Represents the outcome of a program run;
 /// a halt (graceful termination) or a

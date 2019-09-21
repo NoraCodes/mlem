@@ -9,10 +9,10 @@
 //!
 //! # Example
 //! ```
-//! use mlem::{execute, Instruction, Address, Register, Outcome};
-//! use mlem::Instruction::*;
-//! use mlem::Address::*;
-//! use mlem::Register::*;
+//! # use mlem::Instruction::*;
+//! # use mlem::Address::*;
+//! # use mlem::Register::*;
+//! # use mlem::virtual_machine::{self, Outcome};
 //! let input = vec![2, 2, 2, 2];
 //! let expected = vec![4, 0];
 //! let program = vec![
@@ -32,7 +32,7 @@
 //! ];
 //!
 //! // The last value here is the maximum number of instructions to let the program run for.
-//! let (outcome, cycles, output) = execute(program, input, Some(10));
+//! let (outcome, cycles, output) = virtual_machine::execute(program, input, Some(10));
 //! assert!(outcome == Outcome::Halt, "Program did not successfully halt! {:?}", outcome);
 //! assert!(output == expected, "Program did not produce {:?} as expected, but rather {:?}, in {} cycles.", expected, output, cycles);
 //! ```
@@ -42,10 +42,8 @@ extern crate byteorder;
 extern crate serde_derive;
 extern crate serde_cbor;
 
-mod virtual_machine;
+pub mod virtual_machine;
 //mod assembler;
-
-pub use virtual_machine::{execute, Outcome};
 
 #[cfg(test)]
 mod test_instructions;

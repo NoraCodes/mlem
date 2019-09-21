@@ -1,16 +1,16 @@
 [package]
 name = "mlem"
 edition = "2018"
-version = "0.1.0"
-authors = ["SilverWingedSeraph <lfstindall@gmail.com>"]
-description = "A 64-bit Harvard The Machine Learning Machine is a 64-bit virtual Harvard-arch machine for evolutionary algorithms to program against. The machine has eight GPRs (`R0` through `R7`), a hardware stack with SP and BP, and hardware I/O with Input and Output. "
+version = "0.2.0"
+authors = ["Leonora Tindall <nora@nora.codes>"]
+description = "A 64-bit Harvard The Machine Learning Machine is a 64-bit virtual Harvard-arch machine for evolutionary algorithms to program against. The machine has eight GPRs, a hardware stacl, and built-in I/O."
 keywords = ["machine", "virtual-machine", "learning", "genetic"]
 
-repository = "https://github.com/SilverWingedSeraph/mlem"
+repository = "https://github.com/NoraCodes/mlem"
 documentation = "https://docs.rs/mlem"
 readme = "README.md"
 categories = ["emulators", "science"]
-license = "MIT"
+license = "AGPL-3.0-only"
 
 [dependencies]
 byteorder = "^1"
